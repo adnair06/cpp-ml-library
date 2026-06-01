@@ -1,8 +1,0 @@
-[
-{
-  "directory": "C:/Users/abhid/Documents/lib-project/build",
-  "command": "C:\\mingw64\\bin\\g++.exe  @CMakeFiles/lib_project.dir/includes_CXX.rsp -g -std=gnu++20 -o CMakeFiles\\lib_project.dir\\src\\main.cpp.obj -c C:\\Users\\abhid\\Documents\\lib-project\\src\\main.cpp",
-  "file": "C:/Users/abhid/Documents/lib-project/src/main.cpp",
-  "output": "CMakeFiles/lib_project.dir/src/main.cpp.obj"
-}
-]
