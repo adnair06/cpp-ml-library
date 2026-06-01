@@ -1,0 +1,15 @@
+build/
+.vscode/
+
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.dll
+*.tmp
+*.log
+
+CMakeCache.txt
+compile_commands.json
+
