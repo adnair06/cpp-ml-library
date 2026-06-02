@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matrix.hpp"
+#include "Matrix.hpp"
 #include "DataFrame.hpp"
 
 #include <cstddef>
@@ -21,7 +21,7 @@ public:
         W = Matrix(n + 1, 1); 
         size_t iterations = 0; 
         while(iterations++ != epochs) {
-            W = W - (X_bias.transpose() * (X_bias*W - y)) * (learning_rate/static_cast<double>(n)); 
+            W = W - (X_bias.transpose() * (X_bias*W - y)) * (learning_rate/static_cast<double>(m)); 
         }
     }
 

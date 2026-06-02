@@ -11,7 +11,7 @@
 #include <random>
 #include <stdexcept>
 #include<set>
-#include "matrix.hpp"
+#include "Matrix.hpp"
 
 enum class DataType {
     INT,

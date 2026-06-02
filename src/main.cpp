@@ -3,32 +3,29 @@
 #include <vector>
 #include "DataFrame.hpp"
 #include "LinearRegression.hpp"
+#include "LogisticRegression.hpp"
 
 int main() {
-    DataFrame df = CSVReader::read("data/Housing.csv"); 
+    DataFrame df = CSVReader::read("data/Diabetes_Prediction.csv"); 
+
     df.shuffle(); 
-    std::vector<std::string> categorical = {"mainroad", "guestroom", "basement", "hotwaterheating", "airconditioning", "prefarea", "furnishingstatus"};
-    for (auto& h: categorical) {
-        df.one_hot_encode(h); 
-    }
-    std::vector<std::string> columns = df.headers(); 
-    columns.erase(std::find(columns.begin(), columns.end(), "price"));  
+    df.one_hot_encode("gender"); 
 
-    Matrix X = df.to_matrix(columns); 
-    Matrix y = df.to_matrix({"price"}); 
+    std::vector<std::string> header = df.headers(); 
+    header.erase(std::find(header.begin(), header.end(), "smoking_history")); 
+    header.erase(std::find(header.begin(), header.end(), "diabetes"));
 
-    Matrix X_train = X.slice(0, 400), X_test = X.slice(400, X.rows()), y_train = y.slice(0, 400), y_test = y.slice(400, y.rows()); 
-    Scaler Xs, ys; 
+    Matrix X = df.to_matrix(header), y = df.to_matrix({"diabetes"}); 
+    Matrix X_train = X.slice(0, 8000), X_test = X.slice(8000, 10000), y_train = y.slice(0, 8000), y_test = y.slice(8000, 10000); 
+
+    Scaler Xs; 
     Xs.fit(X_train); 
-    ys.fit(y_train); 
-    Matrix X_train_scaled = Xs.transform(X_train), y_train_scaled = ys.transform(y_train), X_test_scaled = Xs.transform(X_test), y_test_scaled = ys.transform(y_test); 
+    Matrix X_train_Scaled = Xs.transform(X_train), X_test_Scaled = Xs.transform(X_test); 
 
-    LinearRegression model; 
-    model.fit(X_train_scaled, y_train_scaled, 0.01, 10000); 
-    Matrix predictions_scaled = model.predict(X_test_scaled); 
-    Matrix predictions = ys.inverse_transform(predictions_scaled);
+    LogisticRegression model; 
+    model.fit(X_train_Scaled, y_train, 0.01, 5000); 
+    Matrix y_pred = model.predict(X_test_Scaled); 
+    double crloss = LogisticRegression::cross_entropy_loss(y_test, y_pred); 
 
-    double error = LinearRegression::MAPE_Error(y_test, predictions); 
-    std::cout << "Error in Linear Regression: " << error << "%" << std::endl;
-    return 0; 
+    std::cout << "The cross entropy loss of the model's prediction is: " << crloss << std::endl;
 }
