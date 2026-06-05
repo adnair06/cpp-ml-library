@@ -63,4 +63,35 @@ public:
 
         return loss / static_cast<double>(y.rows()); 
     }
+
+    static Matrix confusion_matrix(const Matrix& y_test, const Matrix& y_pred, const double threshold = 0.5) {
+        Matrix result(2, 2); 
+        if (y_test.rows() != y_pred.rows()) {
+            throw std::invalid_argument("Matrix dimensions do not match."); 
+        }
+
+        for (size_t i = 0; i < y_pred.rows(); i++) {
+            if (y_test(i, 0) == 1) {
+                if (y_pred(i, 0) >= threshold) {
+                    result(0, 0)++; // TP
+                } else {
+                    result(1, 0)++; // FN
+                }
+            } else {
+                if (y_pred(i, 0) < threshold) {
+                    result(1, 1)++; // TN
+                } else {
+                    result(0, 1)++; // FP
+                }
+            }
+        }
+
+        return result; 
+    }
+
+    static double accuracy(const Matrix& y_test, const Matrix& y_pred, const double threshold = 0.5) {
+        Matrix confusion = confusion_matrix(y_test, y_pred, threshold); 
+        double result = (confusion(0, 0) + confusion(1, 1))/static_cast<double>(y_test.rows()); 
+        return result * 100; 
+    }
 };

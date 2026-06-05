@@ -28,4 +28,7 @@ int main() {
     double crloss = LogisticRegression::cross_entropy_loss(y_test, y_pred); 
 
     std::cout << "The cross entropy loss of the model's prediction is: " << crloss << std::endl;
+    
+    double acc = LogisticRegression::accuracy(y_test, y_pred); 
+    std::cout << "The accuracy of the model is: " << acc << std::endl;
 }
