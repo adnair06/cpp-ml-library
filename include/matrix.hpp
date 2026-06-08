@@ -132,4 +132,10 @@ public:
 
         return result; 
     }
+
+    void resize(const size_t& rows, const size_t& cols) {
+        data.resize(rows * cols); 
+        n_rows = rows; 
+        n_cols = cols; 
+    }
 };
