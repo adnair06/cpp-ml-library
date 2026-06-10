@@ -4,6 +4,7 @@
 #include "DataFrame.hpp"
 #include "LinearRegression.hpp"
 #include "LogisticRegression.hpp"
+#include "DecisionTreeClassifier.hpp"
 
 int main() {
     DataFrame df = CSVReader::read("data/Diabetes_Prediction.csv"); 
@@ -18,17 +19,14 @@ int main() {
     Matrix X = df.to_matrix(header), y = df.to_matrix({"diabetes"}); 
     Matrix X_train = X.slice(0, 8000), X_test = X.slice(8000, 10000), y_train = y.slice(0, 8000), y_test = y.slice(8000, 10000); 
 
-    Scaler Xs; 
-    Xs.fit(X_train); 
-    Matrix X_train_Scaled = Xs.transform(X_train), X_test_Scaled = Xs.transform(X_test); 
+    // Scaler Xs; 
+    // Xs.fit(X_train); 
+    // Matrix X_train_Scaled = Xs.transform(X_train), X_test_Scaled = Xs.transform(X_test); 
 
-    LogisticRegression model; 
-    model.fit(X_train_Scaled, y_train, 0.01, 5000); 
-    Matrix y_pred = model.predict(X_test_Scaled); 
-    double crloss = LogisticRegression::cross_entropy_loss(y_test, y_pred); 
-
-    std::cout << "The cross entropy loss of the model's prediction is: " << crloss << std::endl;
+    DecisionTreeClassifier model; 
+    model.fit(X_train, y_train);
+    Matrix y_pred = model.predict(X_test); 
     
     double acc = LogisticRegression::accuracy(y_test, y_pred); 
-    std::cout << "The accuracy of the model is: " << acc << std::endl;
+    std::cout << "Decision tree classifier has an accuracy of: " << acc << std::endl;
 }

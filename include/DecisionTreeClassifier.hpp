@@ -32,6 +32,9 @@ private:
 
     size_t max_depth, min_samples_split; 
 public:  
+
+    DecisionTreeClassifier(size_t max_depth = 10, size_t min_samples_split = 2) : root(nullptr), max_depth(max_depth), min_samples_split(min_samples_split) {}
+
     double entropy (const Matrix& y) const {
         double result = 0; 
         size_t count_0 = 0, count_1 = 0; 
@@ -47,7 +50,7 @@ public:
         }
 
         
-        double p_0 = count_0/total, p_1 = count_1/total; 
+        double p_0 = static_cast<double>(count_0)/static_cast<double>(total), p_1 = static_cast<double>(count_1)/static_cast<double>(total); 
         if (p_0 > 0) {
             result -= p_0 * log2(p_0); 
         }
@@ -125,9 +128,25 @@ public:
         return best_split; 
     }
 
+    int majority_class(const Matrix& y) const {
+        size_t cnt = 0; 
+        for (size_t i = 0; i < y.rows(); i++) {
+            if (y(i, 0)) {
+                cnt++; 
+            }
+        }
+
+        return ((cnt >= y.rows() - cnt) ? 1 : 0);  
+    } 
+
     Node* build_tree(const Matrix& X, const Matrix& y, size_t depth) {
-        Node* currnode; 
+        Node* currnode = new Node(); 
         bool allequal = true; 
+
+        if (y.rows() == 0) {
+            throw std::invalid_argument("Empty dataset.");
+        }
+
         for (size_t i = 0; i < y.rows() - 1; i++) {
             if (y(i, 0) == y(i + 1, 0)) {
                 continue;
@@ -137,8 +156,10 @@ public:
             }
         }
 
-        if (allequal || X.rows() <= min_samples_split || depth >= max_depth) {
+        if (allequal || X.rows() < min_samples_split || depth >= max_depth) {
             currnode -> leaf = true; 
+            currnode -> right = nullptr; 
+            currnode -> left = nullptr; 
             size_t cnt = 0;  
             for (size_t i = 0; i < y.rows(); i++) {
                 if (y(i, 0)) {
@@ -146,19 +167,61 @@ public:
                 }
             }
 
-            if (cnt >= y.rows() - cnt) {
-                currnode -> prediction = 1; 
-            } else {
-                currnode -> prediction = 0; 
-            }
-
+            currnode -> prediction = majority_class(y);
             return currnode; 
         }
 
         Split best = find_best_split(X, y); 
+        if (best.feature == -1) {
+            currnode -> leaf = true; 
+            currnode -> prediction = majority_class(y); 
+            currnode -> right = nullptr; 
+            currnode -> left = nullptr; 
+
+            return currnode; 
+        } else {
+            currnode -> leaf = false; 
+            currnode -> feature = best.feature; 
+            currnode -> threshold = best.threshold;
+        }
+
+        size_t rcount = 0; 
+        for (size_t i = 0; i < X.rows(); i++) {
+            if (X(i, best.feature) > best.threshold) {
+                rcount++; 
+            }
+        }
+
+        Matrix X_r(rcount, X.cols()), X_l(X.rows() - rcount, X.cols()); 
+        Matrix y_r(rcount, 1), y_l(X.rows() - rcount, 1); 
+        size_t last_r = 0, last_l = 0; 
+        for (size_t i = 0; i < X.rows(); i++) {
+            if (X(i, best.feature) > best.threshold) {
+                for (size_t j = 0; j < X.cols(); j++) {
+                    X_r(last_r, j) = X(i, j);  
+                }
+                y_r(last_r, 0) = y(i, 0); 
+
+                last_r++;
+            } else {
+                for (size_t j = 0; j < X.cols(); j++) {
+                    X_l(last_l, j) = X(i, j); 
+                }
+                y_l(last_l, 0) = y(i, 0); 
+
+                last_l++; 
+            }
+        }
+
+        currnode -> right = build_tree(X_r, y_r, depth + 1); 
+        currnode -> left = build_tree(X_l, y_l, depth + 1); 
+
+        return currnode; 
     }
 
-    void fit(const Matrix& X, const Matrix& y); 
+    void fit(const Matrix& X, const Matrix& y) {
+        root = build_tree(X, y, 0);
+    }
 
     int predict_row(const Matrix& X, size_t row, const Node* node) const {
         if (node -> leaf) {
